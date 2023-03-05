@@ -1,38 +1,67 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import TextEditor from './TextEditor';
 import SideBar from './SideBar'
 import Preview from './Preview';
 import { v4 as uuidv4 } from 'uuid';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 function App() {
-  const [notes, setNotes] = useState(localStorage.notes ? JSON.parse(localStorage.notes): []);
+  const [notes, setNotes] = useState(localStorage.notes ? JSON.parse(localStorage.notes) : []);
   const [activeNote, setActiveNote] = useState({});
   const [isSideBarVisible, setSideBarVisibility] = useState(true);
   const [shouldRender, setShouldRender] = useState(true);
   const isEditorVisible = useRef(false);
   const isPreviewVisible = useRef(false);
   const navigate = useNavigate();
+  const { noteIndex } = useParams();
+
+  useEffect(() => {
+    
+    if (Number.isInteger(parseInt(noteIndex))) {
+      if(noteIndex <= notes.length){
+        const activeNoteURL = notes[noteIndex - 1];
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/edit')) {
+          isEditorVisible.current = true;
+          isPreviewVisible.current = false;
+        }
+        else{
+          isEditorVisible.current = false;
+          isPreviewVisible.current  = true;
+        
+        }
+      
+        setActiveNote(activeNoteURL);
+      }
+      else {
+        navigate(`/note`)
+       }
+
+    } else {
+      navigate(`/note`)
+    }
+
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("notes", JSON.stringify(notes));
   }, [notes])
 
-
-  
   function onAddNote() {
     const newNote = {
       id: uuidv4(),
       title: "Untitled",
-      mainContent:"",
-      timeStamp: new Date().toLocaleString('en-US', { timeZone: 'MST' }).slice(0,16)
+      mainContent: "",
+      timeStamp: new Date(Date.now() - 25200000).toISOString().slice(0,-8)
     };
-    
+   
     setNotes([newNote, ...notes]);
     setActiveNote(newNote);
-    onEditNote();
+    isEditorVisible.current = true;
+    isPreviewVisible.current = false;
+    navigate(`/note/1/edit`)
   }
-  
+
   function onSaveNote(mainContent, title, date) {
     isEditorVisible.current = false;
     isPreviewVisible.current = true;
@@ -57,37 +86,49 @@ function App() {
       timeStamp: date
     };
     selectActiveNote(updatedNote);
-    
+
     navigate(window.location.pathname.replace('/edit', ''))
   }
-  
+
   function onDeleteNote(noteId) {
     const answer = window.confirm("Are you sure?");
-    if(!answer) return;
-    isEditorVisible.current = false;
-    isPreviewVisible.current = false;
+    if (!answer) return;
+    const oldLength = notes.length
+    if (oldLength - 1 > 0) {
+      selectActiveNote(notes[1].id !== noteId ? notes[1] : notes[0]);
+      navigate(`/note/1`);
+    } else {
+      isEditorVisible.current = false;
+      isPreviewVisible.current = false;
+      navigate(`/note`);
+    }
     setNotes(prevState => prevState.filter(note => note.id !== noteId));
-
+   
+    
   }
-  
+
+
   function onEditNote() {
-    const currentPath = window.location.pathname; 
-    navigate(`${currentPath}/edit`);
+    const currentPath = window.location.pathname;
+    if (!currentPath.includes('/edit')) {
+      navigate(`${currentPath}/edit`);
+    }
     isEditorVisible.current = true;
     isPreviewVisible.current = false;
     setShouldRender(!shouldRender);
   }
-  
+
+
   function selectActiveNote(note) {
     isEditorVisible.current = false;
     isPreviewVisible.current = true;
     setActiveNote(note);
   }
-  
+
   function toggleSideBar() {
     setSideBarVisibility(!isSideBarVisible);
-  } 
- 
+  }
+
   return (
     <>
       <div id="top">
@@ -104,6 +145,8 @@ function App() {
             onAddNote={onAddNote}
             activeNote={activeNote}
             selectActiveNote={selectActiveNote}
+            isEditorVisible={isEditorVisible}
+            isPreviewVisible={isPreviewVisible}
           />
         )}
         {isEditorVisible.current && (

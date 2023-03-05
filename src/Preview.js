@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactQuill from 'react-quill';
 
 export default function Preview({ activeNote, onDeleteNote, onEditNote }) {
     const options = {
@@ -29,7 +30,7 @@ export default function Preview({ activeNote, onDeleteNote, onEditNote }) {
                     <button className="indigoButton editor-buttons" onClick={() => onDeleteNote(activeNote.id)}>Delete</button>
                 </div>
             </div>
-            <div id="preview-text-main" className ="note-main-content" dangerouslySetInnerHTML={{__html: (activeNote.mainContent)}}></div>
+            <ReactQuill id = "preview-text-main" readOnly={true} modules={{ toolbar: false }} value={activeNote.mainContent}/>
         </div>
     )
 }

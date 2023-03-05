@@ -11,8 +11,8 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path = "/note" element = {<App />}></Route>
-        <Route path = "/note/:id" element = {<App />}></Route>
-        <Route path = "/note/:id/edit" element = {<App />}></Route>
+        <Route path = "/note/:noteIndex" element = {<App />}></Route>
+        <Route path = "/note/:noteIndex/edit" element = {<App />}></Route>
         <Route path = "/" element = {<Navigate to = "/note"></Navigate>}></Route>
       </Routes>
     </BrowserRouter>
